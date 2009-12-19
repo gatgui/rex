@@ -2,15 +2,17 @@ import glob
 import excons
 
 prjs = [
-  { "name"  : "rex",
-    "type"  : "staticlib",
-    "defs"  : ["SUBEXPOPTS"],
-    "srcs"  : glob.glob("src/lib/*.cpp"),
+  { "name"    : "rex",
+    "type"    : "staticlib",
+    "defs"    : ["SUBEXPOPTS"],
+    "incdirs" : ["include"],
+    "srcs"    : glob.glob("src/lib/*.cpp"),
   },
-  { "name"  : "tests",
-    "type"  : "testprograms",
-    "srcs"  : glob.glob("src/tests/*.cpp"),
-    "libs"  : ["rex"]
+  { "name"    : "tests",
+    "type"    : "testprograms",
+    "incdirs" : ["include"],
+    "srcs"    : glob.glob("src/tests/*.cpp"),
+    "libs"    : ["rex"]
   }
 ]
 
