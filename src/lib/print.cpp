@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,19 +21,18 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
+#include "parser.h"
 #include <iostream>
-using namespace std;
 
 static void indent(int level, std::ostream *os=0) {
-  std::ostream &sout = (os == 0 ? cout : *os);
+  std::ostream &sout = (os == 0 ? std::cout : *os);
   for (int i=0; i<level; ++i) {
     sout << " ";
   }
 }
 
 static void line_header(size_t ndigits, size_t ino, std::ostream *os=0) {
-  std::ostream &sout = (os == 0 ? cout : *os);
+  std::ostream &sout = (os == 0 ? std::cout : *os);
   size_t cdigits=1;
   size_t divider=10;
   while ( (ino % divider) != ino ){
@@ -47,7 +46,7 @@ static void line_header(size_t ndigits, size_t ino, std::ostream *os=0) {
 }
 
 static void print_hexa(unsigned char c, std::ostream *os=0) {
-  std::ostream &sout = (os == 0 ? cout : *os);
+  std::ostream &sout = (os == 0 ? std::cout : *os);
   unsigned char hd[2] = {c/16, c%16};
   sout << "0x";
   for (int i=0; i<2; ++i) {
@@ -59,7 +58,7 @@ static void print_hexa(unsigned char c, std::ostream *os=0) {
   }
 }
 
-void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream *os) {
+void print_partial_expcode(const CodeSegment &cs, size_t from, size_t to, std::ostream *os) {
   int il = 0;
   
   size_t ci = from;
@@ -68,7 +67,7 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
   size_t ndigits=1;
   size_t divider=10;
   
-  std::ostream &sout = (os == 0 ? cout : *os);
+  std::ostream &sout = (os == 0 ? std::cout : *os);
   
   while ( (cssize % divider) != cssize ) {
     divider *= 10;
@@ -84,7 +83,7 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
     switch(code) {
       case OP_CHAR_ANY: {
         indent(il, os);
-        sout << "AnyChar" << endl;
+        sout << "AnyChar" << std::endl;
         ++ci;
         break;
       }
@@ -93,92 +92,92 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
         sout << "SingleChar(";
         print_hexa(arg, os);
         sout << ":" << char(arg&0x00FF);
-        sout << ")" << endl;
+        sout << ")" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_SPACE: {
         indent(il, os);
-        sout << "SpaceChar" << endl;
+        sout << "SpaceChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_NOTSPACE: {
         indent(il, os);
-        sout << "!SpaceChar" << endl;
+        sout << "!SpaceChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_WORD: {
         indent(il, os);
-        sout << "WordChar" << endl;
+        sout << "WordChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_NOTWORD: {
         indent(il, os);
-        sout << "!WordChar" << endl;
+        sout << "!WordChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_DIGIT: {
         indent(il, os);
-        sout << "DigitChar" << endl;
+        sout << "DigitChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_NOTDIGIT: {
         indent(il, os);
-        sout << "!DigitChar" << endl;
+        sout << "!DigitChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_LOWER: {
         indent(il, os);
-        sout << "LowerCaseChar" << endl;
+        sout << "LowerCaseChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_UPPER: {
         indent(il, os);
-        sout << "UpperCaseChar" << endl;
+        sout << "UpperCaseChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_LETTER: {
         indent(il, os);
-        sout << "LetterChar" << endl;
+        sout << "LetterChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_NOTLETTER: {
         indent(il, os);
-        sout << "!LetterChar" << endl;
+        sout << "!LetterChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_HEXA: {
         indent(il, os);
-        sout << "HexaChar" << endl;
+        sout << "HexaChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_NOTHEXA: {
         indent(il, os);
-        sout << "!HexaChar" << endl;
+        sout << "!HexaChar" << std::endl;
         ++ci;
         break;
       }
       case OP_CHAR_CLASS: {
         indent(il, os);
-        sout << "CharClass[:next+=" << arg << endl;
+        sout << "CharClass[:next+=" << arg << std::endl;
         ++il;
         ++ci;
         break;
       }
       case OP_CHAR_NCLASS: {
         indent(il, os);
-        sout << "!CharClass[:next+=" << arg << endl;
+        sout << "!CharClass[:next+=" << arg << std::endl;
         ++il;
         ++ci;
         break;
@@ -186,7 +185,7 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
       case OP_CHAR_ENDCLASS: {
         --il;
         indent(il, os);
-        sout << "]" << endl;
+        sout << "]" << std::endl;
         ++ci;
         break;
       }
@@ -202,7 +201,7 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
         sout << char(c0 & 0x00FF);
         sout << "-";
         sout << char(c1 & 0x00FF);
-        sout << ")" << endl;
+        sout << ")" << std::endl;
         ++ci;
         break;
       }
@@ -211,9 +210,9 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
         unsigned long rmax = ARG(cs[ci+2]);
         indent(il, os);
         if (rmax==ARGMAX) {
-          sout << "GreedyRep{[" << rmin << ", INF]:next=+" << arg << endl;
+          sout << "GreedyRep{[" << rmin << ", INF]:next=+" << arg << std::endl;
         } else {
-          sout << "GreedyRep{[" << rmin << ", " << rmax << "]:next=+" << arg << endl;
+          sout << "GreedyRep{[" << rmin << ", " << rmax << "]:next=+" << arg << std::endl;
         }
         il++;
         ci+=3;
@@ -224,9 +223,9 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
         unsigned long rmax = ARG(cs[ci+2]);
         indent(il, os);
         if (rmax==ARGMAX) {
-          sout << "LazyRep{[" << rmin << ", INF]:next=+" << arg << endl;
+          sout << "LazyRep{[" << rmin << ", INF]:next=+" << arg << std::endl;
         } else {
-          sout << "LazyRep{[" << rmin << ", " << rmax << "]:next=+" << arg << endl;
+          sout << "LazyRep{[" << rmin << ", " << rmax << "]:next=+" << arg << std::endl;
         }
         il++;
         ci+=3;
@@ -235,7 +234,7 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
       case OP_REPEAT_END: {
         --il;
         indent(il, os);
-        sout << "}" << endl;
+        sout << "}" << std::endl;
         ++ci;
         break;
       }
@@ -243,13 +242,13 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
         if (ARG(cs[ci]) == 0) {
           --il;
           indent(il, os);
-          sout << "|:empty" << endl;
+          sout << "|:empty" << std::endl;
         } else {
           indent(il, os);
           if (ci+arg > to) {
-            sout << "Branch|:next=END" << endl;
+            sout << "Branch|:next=END" << std::endl;
           } else {
-            sout << "Branch|:next=+" << arg << endl;
+            sout << "Branch|:next=+" << arg << std::endl;
           }
           ++il;
         }
@@ -258,7 +257,7 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
       }
       case OP_SUB_BEGIN: {
         indent(il, os);
-        sout << "Sub(:next=+" << arg << endl;
+        sout << "Sub(:next=+" << arg << std::endl;
         ++il;
 #ifdef SUBEXPOPTS
         ci += 2;
@@ -270,82 +269,82 @@ void print_partial_expcode(CodeSegment &cs, size_t from, size_t to, std::ostream
       case OP_SUB_END: {
         --il;
         indent(il, os);
-        sout << "):prev=-" << arg << endl;
+        sout << "):prev=-" << arg << std::endl;
         ++ci;
         break;
       }
       case OP_WORD_START: {
         indent(il, os);
-        sout << "WordBeg" << endl;
+        sout << "WordBeg" << std::endl;
         ++ci;
         break;
       }
       case OP_WORD_END: {
         indent(il, os);
-        sout << "WordEnd" << endl;
+        sout << "WordEnd" << std::endl;
         ++ci;
         break;
       }
       case OP_WORD_BOUND: {
         indent(il, os);
-        sout << "WordBnd" << endl;
+        sout << "WordBnd" << std::endl;
         ++ci;
         break;
       }
       case OP_WORD_IN: {
         indent(il, os);
-        sout << "InWord" << endl;
+        sout << "InWord" << std::endl;
         ++ci;
         break;
       }
       case OP_LINE_START: {
         indent(il, os);
-        sout << "LineBeg" << endl;
+        sout << "LineBeg" << std::endl;
         ++ci;
         break;
       }
       case OP_LINE_END: {
         indent(il, os);
-        sout << "LineEnd" << endl;
+        sout << "LineEnd" << std::endl;
         ++ci;
         break;
       }
       case OP_STR_START: {
         indent(il, os);
-        sout << "StrBeg" << endl;
+        sout << "StrBeg" << std::endl;
         ++ci;
         break;
       }
       case OP_STR_END: {
         indent(il, os);
-        sout << "StrEnd" << endl;
+        sout << "StrEnd" << std::endl;
         ++ci;
         break;
       }
       case OP_BUF_END: {
         indent(il, os);
-        sout << "BufEnd" << endl;
+        sout << "BufEnd" << std::endl;
         ++ci;
         break;
       }
       case OP_BACKSUBST: {
         indent(il, os);
-        sout << "Backsubst(" << arg << ")" << endl;
+        sout << "Backsubst(" << arg << ")" << std::endl;
         ++ci;
         break;
       }
       default: {
         indent(il, os);
-        sout << "UNKNOWN INSTRUCTION !!!" << endl;
+        sout << "UNKNOWN INSTRUCTION !!!" << std::endl;
         ++ci;
       }
     }
   }
 }
 
-void print_expcode(CodeSegment &cs) {
+void print_expcode(const CodeSegment &cs) {
   if (cs.size() == 0) {
     return;
   }
-  print_partial_expcode(cs, 0, cs.size()-1, &cout);
+  print_partial_expcode(cs, 0, cs.size()-1, &std::cout);
 }

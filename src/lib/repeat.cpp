@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,14 +21,13 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // Rep    ::= ( "*" | "+" | "?" | Counts ) [ "?" ]
 // Counts ::= "{" digits ["," [ digits] ] "}"
-bool parse_repeat(const char **ppc, Regexp &re) {
+bool parse_repeat(const char **ppc, _Regexp &re) {
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_repeat...";
+  std::cerr << std::endl << "Regexp::parse_repeat...";
 #endif
   const char *pc = *ppc;
   

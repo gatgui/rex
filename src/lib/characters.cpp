@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,14 +21,13 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // Charactes ::= { character }*
-bool parse_characters(const char **ppc, Regexp &re) {
+bool parse_characters(const char **ppc, _Regexp &re) {
   
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_characters...";
+  std::cerr << std::endl << "Regexp::parse_characters...";
 #endif
   const char *pc = *ppc;
   //bool done = false;

@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,8 +21,8 @@ USA.
 
 */
 
-#ifndef _class_table_
-#define _class_table_
+#ifndef __rex_charclass__
+#define __rex_charclass__
 
 #define ESCAPE_CHAR  0x01
 #define DIGIT_CHAR   0x02
@@ -40,11 +40,11 @@ USA.
 #define CTL '\c'
 #define BCK '\b'
 
-extern unsigned char char_class[256];
+extern unsigned char gCharClass[256];
 
-extern void init_table();
+//extern void init_table();
 
-#define CHAR_IS(c,flags) ((char_class[(unsigned char)c] & (flags)) != 0)
+#define CHAR_IS(c, flags) ((gCharClass[(unsigned char)c] & (flags)) != 0)
 
 
 #endif

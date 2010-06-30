@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,12 +21,11 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 bool parse_zerowidth(const char **ppc, CodeSegment &cs) {
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_zerowidth...";
+  std::cerr << std::endl << "Regexp::parse_zerowidth...";
 #endif
   const char *pc = *ppc;
   

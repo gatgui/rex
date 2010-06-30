@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,19 +21,18 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // Piece ::= Atom [ Rep ]
-bool parse_piece(const char **ppc, Regexp &re) {
+bool parse_piece(const char **ppc, _Regexp &re) {
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_piece...";
+  std::cerr << std::endl << "Regexp::parse_piece...";
 #endif
   size_t as = re.cs.size();
   if (parse_atom(ppc,re)) {
     size_t ae = re.cs.size();
 #ifdef _DEBUG
-    cerr << ae-as << " instruction in atom...";
+    std::cerr << ae-as << " instruction in atom...";
 #endif
     if (parse_repeat(ppc,re)) {
       if (re.cs.size() > ae) {
@@ -43,7 +42,7 @@ bool parse_piece(const char **ppc, Regexp &re) {
           re.cs.pop_back();
         }
         
-        vector<unsigned long>::iterator it;
+        std::vector<unsigned long>::iterator it;
         it = re.cs.begin() + as;
         
         // add three instruction, Repeat opcode, rmin, rmax
@@ -62,7 +61,7 @@ bool parse_piece(const char **ppc, Regexp &re) {
         
       } else {
 #ifdef _DEBUG
-        cerr << "...no repeat";
+        std::cerr << "...no repeat";
 #endif
       }
       return true;

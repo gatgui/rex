@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,8 +21,8 @@ USA.
 
 */
 
-#ifndef _opcodes_h_
-#define _opcodes_h_
+#ifndef __rex_opcodes_h__
+#define __rex_opcodes_h__
 
 enum OpCode
 {

@@ -1,82 +1,55 @@
-#include <rex/rex_parser.h>
+#include <rex/rex.h>
 #include <iostream>
-using namespace std;
-
-#if 0
-# define PARSE_ONLY
-#endif
 
 int main(int, char **)
 {
-  init_table();
+  //Regexp re(IEC("^\s*([a-z]+_\d{3})*?\1$"));
+  //Regexp re(IEC("([a-z]+_\d{3})\1$"));
+  //Regexp re(IEC("^(.*?,){11}P"));
+  //Regexp re(IEC("^([^,\r\n]*,){11}P"));
+  //Regexp re(IEC("(?<=\d{3}[a-z0-9_-]o)taro"));
+  //Regexp re(IEC("(?<=\bt)a"));
+  //Regexp re(IEC("$.*hello"));
+  //Regexp re("^hello$");
+  //Regexp re("(?<=^hello)\\staro");
+  //Regexp re("(?<=hello$)\r?\n\\staro");
+  Regexp re("(?<=frame\\.\\d+\\.exr$)\r?\n\\staro");
+  // $ does not get recognized as LineEnd ... why???
+  // that was the case in old code
   
-  Regexp re;
-  //re.exp = RexpString("^\s*([a-z]+_\d{3})*?\1$");
-  //re.exp = RexpString("([a-z]+_\d{3})\1$");
-  //re.exp = RexpString("^(.*?,){11}P");
-  //re.exp = RexpString("^([^,\r\n]*,){11}P");
-  //re.exp = RexpString("(?<=\d{3}[a-z0-9_-]o)taro");
-  //re.exp = RexpString("(?<=\bt)a");
-  //re.exp = RexpString("$.*hello");
-  //re.exp = "^hello$";
-  //re.exp = "(?<=^hello)\\staro";
-  //re.exp = "(?<=hello$)\r?\n\\staro";
-  re.exp = "(?<=frame\\.\\d+\\.exr$)\r?\n\\staro";
+  re.printCode();
   
-  // "  mypicture_000abut_111" matches
+  Regexp::Match m;
   
-  const char *pc = re.exp.c_str();
-
-  cout << "Parsing expresion: \"" << re.exp << "\"" << endl;
-  if (!parse_expression(&pc, re)) {
-    cout << "\tfailed" << endl;
-  } else {
-    cout << endl << endl;
-    print_expcode(re.cs);
-  }
-  
-#ifndef PARSE_ONLY
-  Match m;
   unsigned short flags = EXEC_CAPTURE|EXEC_MULTILINE;
   //unsigned short flags = EXEC_CAPTURE|EXEC_MULTILINE;
   //unsigned short flags = EXEC_CAPTURE;
-  //bool success = rex_search("  mypicture_000tata_007tata_007", re, m);
-  //bool success = rex_execute("1,2,3,4,5,6,7,8,9,10,11,P", re, m);
-  //bool success = rex_execute("  taro, 001_otaro", re, m);
-  //bool success = rex_execute(" 001_otaro,taro", re, m);
-  //bool success = rex_search(" yotaro taro", re, m);
-  bool success = rex_search("frame.1.exr\n taro", re, m, flags);
-  if (success) {
-    size_t len0 = m.mend[0] - m.mbeg[0] + 1;
+  
+  //bool success = re.search("  mypicture_000tata_007tata_007", re, m);
+  //bool success = re.search("1,2,3,4,5,6,7,8,9,10,11,P", re, m);
+  //bool success = re.search("  taro, 001_otaro", re, m);
+  //bool success = re.search(" 001_otaro,taro", re, m);
+  //bool success = re.search(" yotaro taro", re, m);
+  bool success = re.search("frame.1.exr\n taro", m, flags);
+  
+  if (success)
+  {
+    std::cout << std::endl << "Matched Expression(" << m.offset(0) << ":" << m.length(0) << ")" << std::endl;
+    std::cout << "-> \"" << m.group(0) << "\"" << std::endl;
     
-    cout << endl << "Matched Expression(" << m.mbeg[0]-m.beg << ":" << len0 << ")" << endl;
-    cout << "-> \"";
+    std::cout << "Pre: \"" << m.pre() << "\"" << std::endl;
+    std::cout << "Post: \"" << m.post() << "\"" << std::endl;
     
-    for (const char *cc=m.mbeg[0]; cc<=m.mend[0]; ++cc)
+    for (size_t i=1; i<m.numGroups(); ++i)
     {
-      cout << *cc;
-    }
-    cout << "\"" << endl;
-    
-    for (int i=1; i<10; ++i)
-    {
-      if (m.mbeg[i]!=0 && m.mend[i]!=0)
-      {
-        cout << "Match " << i << ":" << endl;
-        cout << "-> \"";
-        for (const char *cc=m.mbeg[i]; cc<=m.mend[i]; ++cc)
-        {
-          cout << *cc;
-        }
-        cout << "\"" << endl;
-      }
+      std::cout << "Match " << i << ":" << std::endl;
+      std::cout << "-> \"" << m.group(i) << "\"" << std::endl;
     }
   }
   else
   {
-    cout << endl << "Unmatched" << endl;
+    std::cout << std::endl << "Unmatched" << std::endl;
   }
-#endif
   
   return 0;
 }

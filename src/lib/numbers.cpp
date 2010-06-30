@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,7 +21,7 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
+#include "parser.h"
 
 bool read_decimal(const char **ppc, unsigned long &v) {
   const char *pc = *ppc;

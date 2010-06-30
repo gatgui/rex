@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,8 +21,7 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // OP_BRANCH / OP_JUMP ?
 // OP_BRANCH [next branch offset]
@@ -30,9 +29,9 @@ using namespace std;
 // OP_BRANCH [0] --> last branch
 
 // Expression ::= Branch { "|" Branch }*
-bool parse_expression(const char **ppc, Regexp &re) {
+bool parse_expression(const char **ppc, _Regexp &re) {
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_expression...";
+  std::cerr << std::endl << "Regexp::parse_expression...";
 #endif
   size_t pbeg = re.cs.size();
   size_t nbeg = 0;

@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,13 +21,12 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // Range ::= { character | character "-" character }+
-bool parse_range(const char **ppc, Regexp &re, bool inv) {
+bool parse_range(const char **ppc, _Regexp &re, bool inv) {
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_range... ";
+  std::cerr << std::endl << "Regexp::parse_range... ";
 #endif
   // push the class on the stack ???
   CodeSegment cs;

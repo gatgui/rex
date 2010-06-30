@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,14 +21,13 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // Branch ::= { Piece }*
-bool parse_branch(const char **ppc, Regexp &re) {
+bool parse_branch(const char **ppc, _Regexp &re) {
   
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_branch...";
+  std::cerr << std::endl << "Regexp::parse_branch...";
 #endif
   while (**ppc!='\0' && **ppc!='|' && **ppc!=')') {
     if (!parse_piece(ppc,re)) {

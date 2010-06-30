@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,13 +21,12 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
+#include "parser.h"
 #include <map>
 #include <vector>
-using namespace std;
 
 #ifdef _DEBUG
-# define _DEBUG_PRINT(whatever) cerr << whatever
+# define _DEBUG_PRINT(whatever) std::cerr << whatever
 # define _DEBUG_ONLY(inst) inst
 #else
 # define _DEBUG_PRINT(whatever)
@@ -35,25 +34,27 @@ using namespace std;
 #endif
 
 static void indent_line(size_t level) {
-  for (size_t i=0; i<level; ++i) cerr << "| ";
+  for (size_t i=0; i<level; ++i) {
+    std::cerr << "| ";
+  }
 }
 
 static void print_substr(const char *from, const char *to) {
   const char *c = from;
   while (c <= to) {
-    cerr << *c;
+    std::cerr << *c;
     ++c;
   }
 }
 
-bool rex_step(Regexp&,ExecState&,Match&);
+bool rex_step(_Regexp&, ExecState&, _Match&);
 
 // execuntil do no execute the "until" instruction
-bool rex_execuntil(Regexp &re, ExecState &es, Match &m, const std::string &comment="") {
+bool rex_execuntil(_Regexp &re, ExecState &es, _Match &m, const std::string &comment="") {
   ExecFlags ef = EXEC_FLAGS(es.opts);
   bool rev = ((ef & EXEC_REVERSE) != 0);
   
-  _DEBUG_PRINT(endl);
+  _DEBUG_PRINT(std::endl);
   _DEBUG_ONLY(indent_line(es.indent));
   _DEBUG_PRINT("[rex_execuntil:" << (int)es.until << "] " << (comment.length() > 0 ? comment : ""));
   
@@ -73,7 +74,7 @@ bool rex_execuntil(Regexp &re, ExecState &es, Match &m, const std::string &comme
   return true;
 }
 
-bool rex_step(Regexp &re, ExecState &es, Match &m) {
+bool rex_step(_Regexp &re, ExecState &es, _Match &m) {
   
   // reverse mode should be handled at this level (both cur char and instruction pointer)
   unsigned long op = OP(re.cs[es.ci]);
@@ -85,10 +86,10 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
   bool rev = ((ef & EXEC_REVERSE) != 0);
   ExecState os;
   
-  _DEBUG_PRINT(endl);
+  _DEBUG_PRINT(std::endl);
   _DEBUG_ONLY(indent_line(es.indent));
   _DEBUG_PRINT("[rex_step: @" << es.ci << " (" << int(op) << "): ");
-  _DEBUG_PRINT("\"" << string(es.cur) << "\", all=\"" << m.beg << "\"] " << (rev ? "REV | " : "| "));
+  _DEBUG_PRINT("\"" << std::string(es.cur) << "\", all=\"" << m.beg << "\"] " << (rev ? "REV | " : "| "));
     
   //if ((  rev && es.cur <= m.first ) ||
   if ((  rev && es.cur < m.beg ) ||
@@ -119,7 +120,7 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
         const char *bsc = 0;
         const char *cc = es.cur;
         
-        _DEBUG_ONLY(cerr << " (\""; print_substr(m.mbeg[arg], m.mend[arg]); cerr << "\") ");
+        _DEBUG_ONLY(std::cerr << " (\""; print_substr(m.mbeg[arg], m.mend[arg]); std::cerr << "\") ");
         
         for (bsc=m.mbeg[arg]; bsc<=m.mend[arg] && cc != m.end; ++bsc, ++cc) {
           if (*bsc != *cc) {
@@ -191,8 +192,8 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
     //---------------
     case OP_REPEAT: {
       
-      vector<const char*> remain;
-      vector<Match> matches;
+      std::vector<const char*> remain;
+      std::vector<_Match> matches;
       
       rmin = ARG(re.cs[es.ci+1]);
       rmax = ARG(re.cs[es.ci+2]);
@@ -250,7 +251,7 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
             es.cur = os.cur;
           }
           
-          _DEBUG_PRINT(endl);
+          _DEBUG_PRINT(std::endl);
           _DEBUG_ONLY(indent_line(es.indent));
           _DEBUG_PRINT("MATCHED REPEAT !!!");
           
@@ -312,7 +313,7 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
         es.until = os.until;
         es.opts = os.opts;
         
-        _DEBUG_PRINT(endl);
+        _DEBUG_PRINT(std::endl);
         _DEBUG_ONLY(indent_line(es.indent));
         _DEBUG_PRINT("Remains: \"" << es.cur << "\"");
         
@@ -322,7 +323,7 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
             es.cur = os.cur;
           }
           
-          _DEBUG_PRINT(endl);
+          _DEBUG_PRINT(std::endl);
           _DEBUG_ONLY(indent_line(es.indent));
           _DEBUG_PRINT("MATCHED LAZY REPEAT !!!");
           
@@ -341,7 +342,7 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
         es.until = os.until;
         es.opts = os.opts;
         
-        _DEBUG_PRINT(endl);
+        _DEBUG_PRINT(std::endl);
         _DEBUG_ONLY(indent_line(es.indent));
         _DEBUG_PRINT("Remains: \"" << es.cur << "\"");
         
@@ -351,7 +352,7 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
             es.cur = os.cur;
           }
           
-          _DEBUG_PRINT(endl);
+          _DEBUG_PRINT(std::endl);
           _DEBUG_ONLY(indent_line(es.indent));
           _DEBUG_PRINT("MATCHED LAZY REPEAT !!!");
           
@@ -1222,16 +1223,26 @@ bool rex_step(Regexp &re, ExecState &es, Match &m) {
   }
 }
 
-bool rex_match(const std::string &str, Regexp &re, Match &m, unsigned short flags) {
+bool rex_match(const std::string &str, _Regexp &re, _Match &m, unsigned short flags, size_t offset, size_t len) {
   
   bool match = false;
   ExecState es;
   
+  if (offset >= str.length()) {
+    return false;
+  }
+  if (len == size_t(-1)) {
+    len = str.length();
+  }
+  if (offset + len > str.length()) {
+    len = str.length() - offset;
+  }
+  
   // Initialize match
   m.str = str;
   //m.first = m.str.c_str();
-  m.beg = m.str.c_str();
-  m.end = m.str.c_str() + m.str.length();
+  m.beg = m.str.c_str() + offset;
+  m.end = m.str.c_str() + offset + len;
   m.last = m.end - 1;
   
   for (int i=0; i<10; ++i) {
@@ -1255,16 +1266,26 @@ bool rex_match(const std::string &str, Regexp &re, Match &m, unsigned short flag
   return match;
 }
 
-bool rex_search(const std::string &str, Regexp &re, Match &m, unsigned short flags) {
+bool rex_search(const std::string &str, _Regexp &re, _Match &m, unsigned short flags, size_t offset, size_t len) {
   
   bool match = false;
   ExecState es;
   
+  if (offset >= str.length()) {
+    return false;
+  }
+  if (len == size_t(-1)) {
+    len = str.length();
+  }
+  if (offset + len > str.length()) {
+    len = str.length() - offset;
+  }
+  
   // Initialize match
   m.str = str;
   //m.first = m.str.c_str();
-  m.beg = m.str.c_str();
-  m.end = m.str.c_str() + m.str.length();
+  m.beg = m.str.c_str() + offset;
+  m.end = m.str.c_str() + offset + len;
   m.last = m.end - 1;
   
   for (int i=0; i<10; ++i) {
@@ -1278,7 +1299,7 @@ bool rex_search(const std::string &str, Regexp &re, Match &m, unsigned short fla
   size_t off = 0;
   
   while (!match && off!=m.str.length()) {
-    _DEBUG_PRINT(endl << endl << "TRY at offset(" << off << ")" << endl);
+    _DEBUG_PRINT(std::endl << std::endl << "TRY at offset(" << off << ")" << std::endl);
     
     es.cur = m.beg + off;
     es.ci = 0;

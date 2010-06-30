@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2009  Gaetan Guidet
+Copyright (C) 2009, 2010  Gaetan Guidet
 
 This file is part of rex.
 
@@ -21,8 +21,7 @@ USA.
 
 */
 
-#include <rex/rex_parser.h>
-using namespace std;
+#include "parser.h"
 
 // sub begin/ sub end opcodes !
 
@@ -30,8 +29,11 @@ using namespace std;
 static bool reverse_code(const CodeSegment &cs, size_t firstOp, size_t lastOp, CodeSegment &rcs) {
   // care of repeat, sub, branch => recursive call
   size_t curOp = firstOp;
+  
   while (curOp <= lastOp) {
+    
     size_t code = OP(cs[curOp]);
+    
     if (code == OP_REPEAT || code == OP_REPEAT_LAZY) {
       // arg is number of instructions to start of repeat?
       size_t arg  = ARG(cs[curOp]);
@@ -55,6 +57,7 @@ static bool reverse_code(const CodeSegment &cs, size_t firstOp, size_t lastOp, C
       rcs.insert(rcs.begin(), OPARG(OP_PARAM, rmin));
       rcs.insert(rcs.begin(), OPARG(code, arg));
       curOp += arg;
+      
     } else if (code == OP_SUB_BEGIN) {
       // arg is number of instructions to start of sub?
       size_t arg  = ARG(cs[curOp]);
@@ -77,13 +80,15 @@ static bool reverse_code(const CodeSegment &cs, size_t firstOp, size_t lastOp, C
       rcs.insert(rcs.begin(), OPARG(OP_PARAM, opts));
       rcs.insert(rcs.begin(), OPARG(code, arg));
       curOp += arg;
+      
     } else if (code == OP_BRANCH) {
       // arg is number of instructions in branch?
       size_t arg = ARG(cs[curOp]);
       if (arg == 0) {
-        cerr << "*** Found empty branch before open branch, THIS SHOULD NEVER HAPPEN!" << endl;
+        std::cerr << "*** Found empty branch before open branch, THIS SHOULD NEVER HAPPEN!" << std::endl;
         rcs.insert(rcs.begin(), OPARG(code, 0));
         ++curOp;
+        
       } else {
         CodeSegment brcs;
         // curOp+arg = OP_BRANCH (next branch)
@@ -106,6 +111,7 @@ static bool reverse_code(const CodeSegment &cs, size_t firstOp, size_t lastOp, C
         
         rcs.insert(rcs.begin(), OPARG(code, arg));
       }
+      
     } else if (code == OP_CHAR_CLASS || code == OP_CHAR_NCLASS) {
       size_t arg = ARG(cs[curOp]);
       size_t n = 0;
@@ -118,6 +124,7 @@ static bool reverse_code(const CodeSegment &cs, size_t firstOp, size_t lastOp, C
       rcs.insert(rcs.begin()+n, cs[curOp]);
       rcs.insert(rcs.begin(), OPARG(code, arg));
       ++curOp;
+      
     } else {
       rcs.insert(rcs.begin(), cs[curOp]);
       ++curOp;
@@ -129,15 +136,15 @@ static bool reverse_code(const CodeSegment &cs, size_t firstOp, size_t lastOp, C
 #endif
 
 // Atom ::= "(" Expression ")" | "[" [^] Range "]" | Characters
-bool parse_atom(const char **ppc, Regexp &re) {
+bool parse_atom(const char **ppc, _Regexp &re) {
 #ifdef _DEBUG
-  cerr << endl << "Regexp::parse_atom...";
+  std::cerr << std::endl << "Regexp::parse_atom...";
 #endif
   const char *pc = *ppc;
   switch(*pc) {
     case '(': {
 #ifdef _DEBUG
-      cerr << "Subexp";
+      std::cerr << "Subexp";
 #endif
       size_t beg, end, n;
       ++pc;
@@ -173,7 +180,7 @@ bool parse_atom(const char **ppc, Regexp &re) {
             opts = ((opts & ~EXEC_CONSUME) & ~EXEC_CAPTURE) | EXEC_REVERSE | EXEC_NOT;
             ++pc;
           } else {
-            cerr << "*** Invalid group format" << std::endl;
+            std::cerr << "*** Invalid group format" << std::endl;
             return false;
           }
         } else if (*pc == 'i' || *pc == 'm' || *pc == 's' || *pc == '-') {
@@ -213,7 +220,7 @@ bool parse_atom(const char **ppc, Regexp &re) {
           if (*pc != ':' && *pc != ')') {
             // either followed by : or group end (meaning we just want to change 
             //                                    exp exec flags)
-            cerr << "*** Invalid group format" << std::endl;
+            std::cerr << "*** Invalid group format" << std::endl;
             return false;
           }
         }
@@ -245,7 +252,7 @@ bool parse_atom(const char **ppc, Regexp &re) {
           for (curOp=firstOp; curOp<=lastOp; ++curOp) {
             size_t opCode = OP(re.cs[curOp]);
             if (opCode == OP_BACKSUBST) {
-              cout << "*** No backsubstitution in lookbehind" << std::endl;
+              std::cout << "*** No backsubstitution in lookbehind" << std::endl;
               return false;
             }
             /* Un-necessary limitation of lookbehind !
@@ -264,13 +271,13 @@ bool parse_atom(const char **ppc, Regexp &re) {
           CodeSegment rcs;
           reverse_code(re.cs, firstOp, lastOp, rcs);
           if (rcs.size() != (lastOp - firstOp + 1)) {
-            cout << "*** Reversed code has not the same size" << std::endl;
+            std::cout << "*** Reversed code has not the same size" << std::endl;
             return false;
           }
           
 #ifdef _DEBUG
-          cerr << endl << "=== Before reversing:";
-          print_partial_expcode(re.cs, firstOp, lastOp, &cerr);
+          std::cerr << std::endl << "=== Before reversing:";
+          print_partial_expcode(re.cs, firstOp, lastOp, &std::cerr);
 #endif
           
           for (size_t i=0, j=firstOp; i<rcs.size(); ++i, ++j) {
@@ -278,9 +285,9 @@ bool parse_atom(const char **ppc, Regexp &re) {
           }
           
 #ifdef _DEBUG
-          cerr << "=== After reversing:";
-          print_partial_expcode(re.cs, firstOp, lastOp, &cerr);
-          cerr <<  "=== Done reversing" << endl;
+          std::cerr << "=== After reversing:";
+          print_partial_expcode(re.cs, firstOp, lastOp, &std::cerr);
+          std::cerr <<  "=== Done reversing" << std::endl;
 #endif
         }
 #endif
@@ -296,7 +303,7 @@ bool parse_atom(const char **ppc, Regexp &re) {
     }
     case '[': {
 #ifdef _DEBUG
-      cerr << "Range";
+      std::cerr << "Range";
 #endif
       bool inv = false;
       ++pc;
@@ -315,7 +322,7 @@ bool parse_atom(const char **ppc, Regexp &re) {
     }
     default:
 #ifdef _DEBUG
-      cerr << "Characters...";
+      std::cerr << "Characters...";
 #endif
       if (!parse_characters(&pc,re)) {
         if (!parse_zerowidth(&pc, re.cs)) {
