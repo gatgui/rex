@@ -1252,7 +1252,7 @@ bool rex_match(const std::string &str, _Regexp &re, _Match &m, unsigned short fl
   //es.opts = EXEC_OPTS(EXEC_CONSUME|EXEC_CAPTURE|EXEC_MULTILINE, 0);
   es.opts = EXEC_OPTS(EXEC_CONSUME|flags, 0);
   es.ci = 0;
-  es.cur = 0;
+  es.cur = m.beg;
   es.indent = 0;
   es.until = OP_BRANCH;
   
@@ -1298,7 +1298,7 @@ bool rex_search(const std::string &str, _Regexp &re, _Match &m, unsigned short f
   
   size_t off = 0;
   
-  while (!match && off!=m.str.length()) {
+  while (!match && off<len) {
     _DEBUG_PRINT(std::endl << std::endl << "TRY at offset(" << off << ")" << std::endl);
     
     es.cur = m.beg + off;
