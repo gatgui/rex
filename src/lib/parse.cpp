@@ -251,8 +251,8 @@ Instruction* ParseAtom(const char **ppc, ParseInfo &info)
         }
         else if (*pc == 'i' || *pc == 'm' || *pc == 's' || *pc == '-')
         {
-          capture = false;
-          consume = false;
+          //capture = false;
+          //consume = false;
           if (*pc == 'i')
           {
             // case sensitive off
@@ -298,6 +298,17 @@ Instruction* ParseAtom(const char **ppc, ParseInfo &info)
             // either followed by : or group end (meaning we just want to change exp exec flags)
             std::cerr << "*** Invalid group format" << std::endl;
             return 0;
+          }
+          
+          if (*pc == ':')
+          {
+            ++pc;
+            // would having a closing parent here be problematic
+          }
+          else
+          {
+            capture = false;
+            consume = false;
           }
         }
       }

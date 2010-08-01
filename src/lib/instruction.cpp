@@ -1116,9 +1116,9 @@ void Group::toStream(std::ostream &os, const std::string &indent) const
   
   switch (mNoCase)
   {
-  case On:  os << "case[on] "; break;
-  case Off: os << "case[off] "; break;
-  case Inherit: os << "case[inherit] "; break;
+  case On:  os << "nocase[on] "; break;
+  case Off: os << "nocase[off] "; break;
+  case Inherit: os << "nocase[inherit] "; break;
   default: break;
   }
   

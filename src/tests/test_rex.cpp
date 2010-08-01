@@ -308,6 +308,10 @@ int main(int argc, char **argv)
   if (doTest("[Reverse] Zerowidth 7", tests)) suite.addTest(new RexTest("[Reverse] Zerowidth 7", RAW("\Ahello\z"), "hello\n", false, 0, 0, Rex::Reverse));
   if (doTest("[Reverse] Zerowidth 8", tests)) suite.addTest(new RexTest("[Reverse] Zerowidth 8", RAW("\Ahello\z"), "hello", true, 1, results18, Rex::Reverse));
   
+  const char *results36[] = {"True"};
+  if (doTest("Alternative 0", tests)) suite.addTest(new RexTest("Alternative 0", "true|1", "True", true, 1, results36, Rex::NoCase));
+  if (doTest("Alternative 1", tests)) suite.addTest(new RexTest("Alternative 1", "(?i:true|1)", "True", true, 1, results36));
+  
   if (doTest("Groups 0", tests)) suite.addTest(new RexTest("Groups 0", RAW("(hello)"), "hello world", true, 2, results21));
   if (doTest("Groups 1", tests)) suite.addTest(new RexTest("Groups 1", RAW("\d*\s+(\w+)"), "10 worlds", true, 2, results22));
   if (doTest("Groups 2", tests)) suite.addTest(new RexTest("Groups 2", RAW("(?!alb)edo"), "torpedo", true, 1, results23));
