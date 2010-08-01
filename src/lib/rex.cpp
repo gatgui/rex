@@ -1,221 +1,315 @@
 #include <rex/rex.h>
-#include "parser.h"
+#include "parse.h"
+#include "instruction.h"
 
-Regexp::Match::Match()
-  : mStr(""), mBeg(0), mLast(0)
+Rex::Match::Match()
+  : mStr("")
 {
-  for (size_t i=0; i<10; ++i)
-  {
-    mGrpBeg[i] = -1;
-    mGrpEnd[i] = -1;
-  }
 }
 
-Regexp::Match::Match(const Regexp::Match &rhs)
+Rex::Match::Match(const Rex::Match &rhs)
 {
   operator=(rhs);
 }
 
-Regexp::Match::~Match()
+Rex::Match::~Match()
 {
 }
 
-Regexp::Match& Regexp::Match::operator=(const Regexp::Match &rhs)
+Rex::Match& Rex::Match::operator=(const Rex::Match &rhs)
 {
   if (this != &rhs)
   {
     mStr = rhs.mStr;
-    mBeg = rhs.mBeg;
-    mLast = rhs.mLast;
-    for (size_t i=0; i<10; ++i)
-    {
-      mGrpBeg[i] = rhs.mGrpBeg[i];
-      mGrpEnd[i] = rhs.mGrpEnd[i];
-    }
+    mGroups = rhs.mGroups;
   }
   return *this;
 }
 
-bool Regexp::Match::hasGroup(size_t i) const
+bool Rex::Match::hasGroup(size_t i) const
 {
-  return (i < 10 && mGrpBeg[i] > 0 && mGrpEnd[i] > 0);
+  return (i < mGroups.size() && mGroups[i].first>=0 && mGroups[i].second>=0);
 }
 
-std::string Regexp::Match::pre() const
+std::string Rex::Match::pre() const
 {
-  return mStr.substr(mBeg, mGrpBeg[0]-mBeg+1);
+  //return mStr.substr(mRange.first, mGroups[0].first - mRange.first + 1);
+  return mStr.substr(0, mRange.first);
 }
 
-std::string Regexp::Match::post() const
+std::string Rex::Match::post() const
 {
-  return mStr.substr(mGrpEnd[0]+1, mLast-mGrpEnd[0]);
+  //return mStr.substr(mGroups[0].second + 1, mRange.second - mGroups[0].second);
+  return mStr.substr(mRange.second);
 }
 
-std::string Regexp::Match::group(size_t i) const
+std::string Rex::Match::group(size_t i) const
 {
   if (!hasGroup(i))
   {
     return "";
   }
-  return mStr.substr(mGrpBeg[i], mGrpEnd[i] - mGrpBeg[i] + 1);
+  return mStr.substr(mGroups[i].first, mGroups[i].second - mGroups[i].first);
 }
 
-size_t Regexp::Match::offset(size_t i) const
+size_t Rex::Match::offset(size_t i) const
 {
   if (!hasGroup(i))
   {
     return 0;
   }
-  return mGrpBeg[i] - mBeg;
+  return mGroups[i].first - mRange.first;
 }
 
-size_t Regexp::Match::length(size_t i) const
+size_t Rex::Match::length(size_t i) const
 {
   if (!hasGroup(i))
   {
     return 0;
   }
-  return (mGrpEnd[i] - mGrpBeg[i] + 1);
+  return (mGroups[i].second - mGroups[i].first + 1);
 }
 
-size_t Regexp::Match::numGroups() const
+size_t Rex::Match::numGroups() const
 {
-  size_t numGrp = 0;
-  for (size_t i=0; i<10; ++i)
-  {
-    if (mGrpBeg[i] > 0 && mGrpEnd[i] > 0)
-    {
-      ++numGrp;
-    }
-  }
-  return numGrp;
+  return mGroups.size();
 }
 
 // ---
 
-Regexp::Regexp()
-  : mValid(false)
+Rex::Rex()
+  : mValid(false), mCode(0), mNumGroups(0)
 {
 }
 
-Regexp::Regexp(const std::string &exp)
-  : mValid(false)
+Rex::Rex(const std::string &exp)
+  : mValid(false), mCode(0), mNumGroups(0)
 {
-  setExpression(exp);
+  set(exp);
 }
 
-Regexp::Regexp(const Regexp &rhs)
+Rex::Rex(const Rex &rhs)
+  : mValid(false), mCode(0), mNumGroups(0)
 {
   operator=(rhs);
 }
 
-Regexp::~Regexp()
+Rex::~Rex()
 {
+  if (mCode)
+  {
+    delete mCode;
+  }
 }
 
-Regexp& Regexp::operator=(const Regexp &rhs)
+Rex& Rex::operator=(const Rex &rhs)
 {
   if (this != &rhs)
   {
     mValid = rhs.mValid;
     mExp = rhs.mExp;
+    mNumGroups = rhs.mNumGroups;
+    if (mCode)
+    {
+      delete mCode;
+    }
+    //mCode = rhs.mCode->clone();
+    mCode = Instruction::CloneList(rhs.mCode);
   }
   return *this;
 }
 
-bool Regexp::isValid() const
+bool Rex::valid() const
 {
   return mValid;
 }
 
-void Regexp::setExpression(const std::string &exp)
+void Rex::set(const std::string &exp)
 {
-  mExp.str = exp;
-  const char *pc = mExp.str.c_str();
-  mValid = parse_expression(&pc, *((_Regexp*)&mExp));
+  ParseInfo info;
+  info.numGroups = 0;
+  
+  mExp = exp;
+  
+  const char *pc = mExp.c_str();
+  
+  mCode = ParseExpression(&pc, info);
+  
+  mNumGroups = info.numGroups;
 }
 
-const std::string Regexp::getExpression() const
+const std::string Rex::get() const
 {
-  return mExp.str;
+  return mExp;
 }
 
-bool Regexp::search(const std::string &s, Regexp::Match &m, unsigned short execflags, size_t offset, size_t len) const
+bool Rex::search(const std::string &s, Rex::Match &m, unsigned short flags, size_t offset, size_t len) const
 {
-  if (!mValid)
+  if (!mCode)
   {
     return false;
   }
   
-  _Match _m;
-  
-  if (rex_search(s, *((_Regexp*)&mExp), _m, execflags, offset, len))
+  if (len == size_t(-1))
   {
-    m.mStr  = s;
-    m.mBeg  = int(_m.beg  - _m.str.c_str());
-    m.mLast = int(_m.last - _m.str.c_str());
-    for (int i=0; i<10; ++i)
-    {
-      m.mGrpBeg[i] = int(_m.mbeg[i] == 0 ? -1 : _m.mbeg[i] - _m.str.c_str());
-      m.mGrpEnd[i] = int(_m.mend[i] == 0 ? -1 : _m.mend[i] - _m.str.c_str());
-    }
-    return true;
+    len = s.length();
   }
+  
+  if (offset >= s.length())
+  {
+    return false;
+  }
+  
+  if (offset+len > s.length())
+  {
+    return false;
+  }
+  
+  //MatchInfo info(s.c_str()+offset, s.c_str()+offset+len, flags, mNumGroups+1);
+  //const char *cur = info.beg;
+  
+  MatchInfo info(s.c_str(), s.c_str()+s.length(), flags, mNumGroups+1);
+  
+  const char *beg = info.beg + offset;
+  const char *end = beg + len;
+  const char *cur = beg;
+  size_t step = 1;
+  Instruction *code = mCode;
+  
+  if (flags & Rex::Reverse)
+  {
+    cur = end;
+    step = -1;
+    while (code->next())
+    {
+      code = code->next();
+    }
+  }
+  
+  //while (cur < info.end)
+  //while (cur < end)
+  do
+  {
+#ifdef _DEBUG
+    std::cout << "Try match with \"" << cur << "\"" << std::endl;
+#endif
+    const char *rv = code->match(cur, info);
+    if (rv != 0)
+    {
+      std::swap(info.gmatch, m.mGroups);
+      if (flags & Rex::Reverse)
+      {
+        m.mRange.first = rv - info.beg;
+        m.mRange.second = cur - info.beg;
+      }
+      else
+      {
+        m.mRange.first = cur - info.beg;
+        m.mRange.second = rv - info.beg;
+      }
+      m.mGroups[0].first = m.mRange.first;
+      m.mGroups[0].second = m.mRange.second;
+      m.mStr = s;
+#ifdef _DEBUG
+      std::cout << "  Matched string: \"" << m.mStr << "\"" << std::endl;
+      std::cout << "  Matched range: [" << m.mRange.first << ", " << m.mRange.second << "]" << std::endl;
+      for (size_t i=0; i<m.mGroups.size(); ++i)
+      {
+        std::cout << "  Matched group " << i << ": [" << m.mGroups[i].first << ", " << m.mGroups[i].second << "]: \"" << m.group(i) << "\"" << std::endl;
+      }
+      std::cout << "  Pre: \"" << m.pre() << "\"" << std::endl;
+      std::cout << "  Post: \"" << m.post() << "\"" << std::endl;
+#endif
+      return true;
+    }
+    //++cur;
+    cur += step;
+  } while (cur >= beg && cur < end);
   
   return false;
 }
 
-bool Regexp::search(const std::string &s, unsigned short execflags, size_t offset, size_t len) const
+bool Rex::search(const std::string &s, unsigned short flags, size_t offset, size_t len) const
 {
-  if (!mValid)
-  {
-    return false;
-  }
-  
-  _Match _m;
-  
-  return rex_search(s, *((_Regexp*)&mExp), _m, execflags, offset, len);
+  Rex::Match m;
+  return search(s, m, flags, offset, len);
 }
 
-bool Regexp::match(const std::string &s, Regexp::Match &m, unsigned short execflags, size_t offset, size_t len) const
+bool Rex::match(const std::string &s, Rex::Match &m, unsigned short flags, size_t offset, size_t len) const
 {
-  if (!mValid)
+  if (!mCode)
   {
     return false;
   }
   
-  _Match _m;
-  
-  if (rex_search(s, *((_Regexp*)&mExp), _m, execflags, offset, len))
+  if (len == size_t(-1))
   {
-    m.mStr  = s;
-    m.mBeg  = int(_m.beg  - _m.str.c_str());
-    m.mLast = int(_m.last - _m.str.c_str());
-    for (int i=0; i<10; ++i)
+    len = s.length();
+  }
+  
+  if (offset >= s.length())
+  {
+    return false;
+  }
+  
+  if (offset+len > s.length())
+  {
+    return false;
+  }
+  
+  //MatchInfo info(s.c_str()+offset, s.c_str()+offset+len, flags, mNumGroups+1);
+  //const char *cur = info.beg;
+  MatchInfo info(s.c_str(), s.c_str()+s.length(), flags, mNumGroups+1);
+  
+  const char *cur = info.beg + offset;
+  Instruction *code = mCode;
+  
+  if (flags & Rex::Reverse)
+  {
+    cur += len;
+    while (code->next())
     {
-      m.mGrpBeg[i] = int(_m.mbeg[i] == 0 ? -1 : _m.mbeg[i] - _m.str.c_str());
-      m.mGrpEnd[i] = int(_m.mend[i] == 0 ? -1 : _m.mend[i] - _m.str.c_str());
+      code = code->next();
     }
+  }
+  
+  const char *rv = mCode->match(cur, info);
+  if (rv != 0)
+  {
+    std::swap(info.gmatch, m.mGroups);
+    if (flags & Rex::Reverse)
+    {
+      m.mRange.first = rv - info.beg;
+      m.mRange.second = cur - info.beg;
+    }
+    else
+    {
+      m.mRange.first = cur - info.beg;
+      m.mRange.second = rv - info.beg;
+    }
+    m.mGroups[0].first = m.mRange.first;
+    m.mGroups[0].second = m.mRange.second;
+    m.mStr = s;
     return true;
   }
-  
-  return false;
-}
-
-bool Regexp::match(const std::string &s, unsigned short execflags, size_t offset, size_t len) const
-{
-  if (!mValid)
+  else
   {
     return false;
   }
-  
-  _Match _m;
-  
-  return rex_match(s, *((_Regexp*)&mExp), _m, execflags, offset, len);
 }
 
-void Regexp::printCode() const
+bool Rex::match(const std::string &s, unsigned short flags, size_t offset, size_t len) const
 {
-  print_expcode(mExp.code);
+  Rex::Match m;
+  return match(s, m, flags, offset, len);
+}
+
+std::ostream& operator<<(std::ostream &os, const Rex &r)
+{
+  if (r.mCode != 0)
+  {
+    r.mCode->toStream(os);
+  }
+  return os;
 }
 

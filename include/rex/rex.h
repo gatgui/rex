@@ -26,12 +26,14 @@ USA.
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <iostream>
 
 // ignore escape character in string
-#define IEC(str) (_Exp(#str))
+#define RAW(str) (_RawString(#str))
 
-struct _Exp {
-  inline _Exp(const char *s)
+struct _RawString {
+  inline _RawString(const char *s)
     :e(s) {
     e.erase(0,1);
     e.erase(e.length()-1,1);
@@ -43,85 +45,88 @@ struct _Exp {
     std::string e;
 };
 
-enum ExecFlags {
-  EXEC_NOCASE      = 0x0001, // ignore case
-  EXEC_CONSUME     = 0x0002, // increment input pointer
-  EXEC_CAPTURE     = 0x0004, // group are capturing
-  EXEC_REVERSE     = 0x0008, // apply backwards (no group capture)
-  EXEC_MULTILINE   = 0x0010, // makes ^ and $ match at line boundaries (instead of buffer like \A \Z)
-  EXEC_NOT         = 0x0020, // no match is match
-  EXEC_DOT_NEWLINE = 0x0040, // dot matches new line chars \r and/or \n
-  // special values for sub options
-  EXEC_INHERIT_ML  = 0x0100, // group inherit multiline flag
-  EXEC_INHERIT_NC  = 0x0200, // group inherit nocase flags
-  EXEC_INHERIT_DNL = 0x0400  // group inherit dot match newline
-};
 
-class Regexp {
+class Rex {
   public:
+    
+    // Remove Consume, Capture, Not and Inherit stuffs
+    enum Flags {
+      NoCase          = 0x0001, // ignore case
+      //Consume         = 0x0002, // increment input pointer
+      //Capture         = 0x0004, // group are capturing
+      Reverse         = 0x0008, // apply backwards (no group capture)
+      Multiline       = 0x0010, // makes ^ and $ match at line boundaries (instead of buffer like \A \Z)
+      //Not             = 0x0020, // no match is match
+      DotMatchNewline = 0x0040, // dot matches new line chars \r and/or \n
+      // special values for sub options
+      //InheritMultiline       = 0x0100, // group inherit multiline flag
+      //InheritNoCase          = 0x0200, // group inherit nocase flags
+      //InheritDotMatchNewline = 0x0400  // group inherit dot match newline
+    };
     
     class Match {
       public:
-
-        friend class Regexp;
-
+        
+        friend class Rex;
+        
+        typedef std::pair<int,int> Range;
+        
         Match();
         Match(const Match &rhs);
         ~Match();
-
+        
         Match& operator=(const Match &rhs);
-
+        
         std::string pre() const;
+        
         std::string post() const;
+        
         std::string group(size_t i) const;
+        
         // offset in matched string (group(0))
         size_t offset(size_t i) const;
+      
         size_t length(size_t i) const;
+        
         size_t numGroups() const;
+        
         bool hasGroup(size_t i) const;
-
+        
       protected:
-
+        
         std::string mStr;
-        int mBeg;
-        int mLast;
-        int mGrpBeg[10];
-        int mGrpEnd[10];
+        Range mRange;
+        std::vector<Range> mGroups; // 0 if full match
     };
   
   public:
     
-    Regexp();
-    Regexp(const std::string &exp);
-    Regexp(const Regexp &rhs);
-    ~Regexp();
+    Rex();
+    Rex(const std::string &exp);
+    Rex(const Rex &rhs);
+    ~Rex();
     
-    Regexp& operator=(const Regexp &rhs);
+    Rex& operator=(const Rex &rhs);
     
-    bool isValid() const;
+    bool valid() const;
     
-    void setExpression(const std::string &exp);
-    const std::string getExpression() const;
+    void set(const std::string &exp);
+    const std::string get() const;
     
-    bool search(const std::string &s, Match &m, unsigned short execflags=EXEC_CAPTURE, size_t offset=0, size_t len=size_t(-1)) const;
+    bool search(const std::string &s, Match &m, unsigned short flags=0, size_t offset=0, size_t len=size_t(-1)) const;
     bool search(const std::string &s, unsigned short execflags=0, size_t offset=0, size_t len=size_t(-1)) const;
     
-    bool match(const std::string &s, Match &m, unsigned short execflags=EXEC_CAPTURE, size_t offset=0, size_t len=size_t(-1)) const;
+    bool match(const std::string &s, Match &m, unsigned short flags=0, size_t offset=0, size_t len=size_t(-1)) const;
     bool match(const std::string &s, unsigned short execflags=0, size_t offset=0, size_t len=size_t(-1)) const;
     
-    void printCode() const;
+    friend std::ostream& operator<<(std::ostream &os, const Rex &r);
     
   protected:
     
     bool mValid;
-    
-    struct ExpData
-    {
-      std::string str;
-      std::vector<unsigned long> code;
-    };
-    
-    ExpData mExp;
+    std::string mExp;
+    class Instruction *mCode;
+    int mNumGroups;
 };
 
 

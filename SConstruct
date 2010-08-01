@@ -4,7 +4,6 @@ import excons
 prjs = [
   { "name"    : "rex",
     "type"    : "staticlib",
-    "defs"    : ["SUBEXPOPTS"],
     "incdirs" : ["include"],
     "srcs"    : glob.glob("src/lib/*.cpp"),
   },
