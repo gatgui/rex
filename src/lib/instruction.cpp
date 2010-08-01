@@ -868,7 +868,7 @@ const char* Repeat::match(const char *cur, MatchInfo &info) const
     {
       // repeated instruction might be in a group
       // calling matchRemain may have closed the group
-      if (mGroup)
+      if (mGroup && info.gclosed[mGroup] == true)
       {
         info.flags = gflags;
         mGroup->open(gcur, info);
@@ -921,7 +921,7 @@ const char* Repeat::match(const char *cur, MatchInfo &info) const
         // repeated instruction might be in a group
         // calling matchRemain may have closed the group
         
-        if (mGroup)
+        if (mGroup && info.gclosed[mGroup] == true)
         {
           info.flags = gflags;
           mGroup->open(gcur, info);
