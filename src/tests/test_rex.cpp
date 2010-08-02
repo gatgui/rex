@@ -142,11 +142,11 @@ class RexTest : public UnitTest
     {
       if (mFlags & Rex::Reverse)
       {
-        mFlags = mFlags & ~Rex::Reverse;
+        mFlags = (unsigned short)(mFlags & ~Rex::Reverse);
       }
       else
       {
-        mFlags = mFlags | Rex::Reverse;
+        mFlags = (unsigned short)(mFlags | Rex::Reverse);
       }
     }
     
@@ -308,10 +308,6 @@ int main(int argc, char **argv)
   if (doTest("[Reverse] Zerowidth 7", tests)) suite.addTest(new RexTest("[Reverse] Zerowidth 7", RAW("\Ahello\z"), "hello\n", false, 0, 0, Rex::Reverse));
   if (doTest("[Reverse] Zerowidth 8", tests)) suite.addTest(new RexTest("[Reverse] Zerowidth 8", RAW("\Ahello\z"), "hello", true, 1, results18, Rex::Reverse));
   
-  const char *results36[] = {"True"};
-  if (doTest("Alternative 0", tests)) suite.addTest(new RexTest("Alternative 0", "true|1", "True", true, 1, results36, Rex::NoCase));
-  if (doTest("Alternative 1", tests)) suite.addTest(new RexTest("Alternative 1", "(?i:true|1)", "True", true, 1, results36));
-  
   if (doTest("Groups 0", tests)) suite.addTest(new RexTest("Groups 0", RAW("(hello)"), "hello world", true, 2, results21));
   if (doTest("Groups 1", tests)) suite.addTest(new RexTest("Groups 1", RAW("\d*\s+(\w+)"), "10 worlds", true, 2, results22));
   if (doTest("Groups 2", tests)) suite.addTest(new RexTest("Groups 2", RAW("(?!alb)edo"), "torpedo", true, 1, results23));
@@ -329,7 +325,6 @@ int main(int argc, char **argv)
   if (doTest("[Reverse] Groups 9", tests)) suite.addTest(new RexTest("[Reverse] Groups 9", RAW("\1\s+(\w+)"), "hello hello", true, 2, results26, Rex::Reverse));
   if (doTest("[Reverse] Groups 10", tests)) suite.addTest(new RexTest("[Reverse] Groups 10", RAW("\1\s+(\w+)"), "HellO hELLo", true, 2, results28, Rex::Reverse|Rex::NoCase));
   
-  
   const char *results29[] = {"  mypicture_000tata_007tata_007", "tata_007"};
   const char *results30[] = {"tata_007tata_007", "tata_007"};
   const char *results31[] = {"1,2,3,4,5,6,7,8,9,10,11,P", "11,"};
@@ -337,6 +332,10 @@ int main(int argc, char **argv)
   const char *results33[] = {"a"};
   const char *results34[] = {" taro"};
   const char *results35[] = {"\n taro"};
+  const char *results36[] = {"True"};
+  
+  if (doTest("Alternative 0", tests)) suite.addTest(new RexTest("Alternative 0", RAW("true|ok|on|1"), "True", true, 1, results36, Rex::NoCase));
+  if (doTest("Alternative 1", tests)) suite.addTest(new RexTest("Alternative 1", RAW("(?i:true|ok|on|1)"), "True", true, 1, results36));
   
   if (doTest("Complex 0", tests)) suite.addTest(new RexTest("Complex 0", RAW("^\s*([a-z]+_\d{3})*?\1$"), "  mypicture_000tata_007tata_007", true, 2, results29));
   if (doTest("Complex 1", tests)) suite.addTest(new RexTest("Complex 1", RAW("([a-z]+_\d{3})\1$"), "  mypicture_000tata_007tata_007", true, 2, results30));

@@ -1,3 +1,26 @@
+/*
+
+Copyright (C) 2010  Gaetan Guidet
+
+This file is part of rex.
+
+rex is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or (at
+your option) any later version.
+
+rex is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+USA.
+
+*/
+
 #include <rex/rex.h>
 #include "parse.h"
 #include "instruction.h"
@@ -173,7 +196,7 @@ bool Rex::search(const std::string &s, Rex::Match &m, unsigned short flags, size
   const char *beg = info.beg + offset;
   const char *end = beg + len;
   const char *cur = beg;
-  size_t step = 1;
+  int step = 1;
   Instruction *code = mCode;
   
   if (flags & Rex::Reverse)
@@ -199,13 +222,13 @@ bool Rex::search(const std::string &s, Rex::Match &m, unsigned short flags, size
       std::swap(info.gmatch, m.mGroups);
       if (flags & Rex::Reverse)
       {
-        m.mRange.first = rv - info.beg;
-        m.mRange.second = cur - info.beg;
+        m.mRange.first = int(rv - info.beg);
+        m.mRange.second = int(cur - info.beg);
       }
       else
       {
-        m.mRange.first = cur - info.beg;
-        m.mRange.second = rv - info.beg;
+        m.mRange.first = int(cur - info.beg);
+        m.mRange.second = int(rv - info.beg);
       }
       m.mGroups[0].first = m.mRange.first;
       m.mGroups[0].second = m.mRange.second;
@@ -279,13 +302,13 @@ bool Rex::match(const std::string &s, Rex::Match &m, unsigned short flags, size_
     std::swap(info.gmatch, m.mGroups);
     if (flags & Rex::Reverse)
     {
-      m.mRange.first = rv - info.beg;
-      m.mRange.second = cur - info.beg;
+      m.mRange.first = int(rv - info.beg);
+      m.mRange.second = int(cur - info.beg);
     }
     else
     {
-      m.mRange.first = cur - info.beg;
-      m.mRange.second = rv - info.beg;
+      m.mRange.first = int(cur - info.beg);
+      m.mRange.second = int(rv - info.beg);
     }
     m.mGroups[0].first = m.mRange.first;
     m.mGroups[0].second = m.mRange.second;
@@ -302,6 +325,82 @@ bool Rex::match(const std::string &s, unsigned short flags, size_t offset, size_
 {
   Rex::Match m;
   return match(s, m, flags, offset, len);
+}
+
+std::string Rex::substitute(const Rex::Match &m, const std::string &in, bool *failed) const
+{
+  if (m.hasGroup(0))
+  {
+    std::string rv = "";
+    
+    const char *c = in.c_str();
+    
+    while (*c != '\0')
+    {
+      if (*c == '\\')
+      {
+        ++c;
+        if (*c >= '0' && *c <= '9')
+        {
+          int grp = *c - '0';
+          if (!m.hasGroup(grp))
+          {
+            if (failed)
+            {
+              *failed = true;
+            }
+            return "";
+          }
+          rv += m.group(grp);
+        }
+        else if (*c == '`')
+        {
+          rv += m.pre();
+        }
+        else if (*c == '&')
+        {
+          rv += m.group(0);
+        }
+        else if (*c == '\'')
+        {
+          rv += m.post();
+        }
+        else
+        {
+          --c;
+          rv.append(1, *c);
+        }
+      }
+      else
+      {
+        rv.append(1, *c);
+      }
+      ++c;
+    }
+    
+    return rv;
+  }
+  
+  if (failed)
+  {
+    *failed = true;
+  }
+  
+  return "";
+}
+
+std::string Rex::substitute(const std::string &str, const std::string &in, bool *failed) const
+{
+  Rex::Match m;
+  if (search(str, m))
+  {
+    return substitute(m, in, failed);
+  }
+  if (failed)
+  {
+    *failed = true;
+  }
+  return "";
 }
 
 std::ostream& operator<<(std::ostream &os, const Rex &r)

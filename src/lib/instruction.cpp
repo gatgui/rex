@@ -167,7 +167,6 @@ const char* Instruction::matchRemain(const char *cur, MatchInfo &info) const
   }
   
   if (mGroup && info.gclosed[mGroup] == false)
-  //if (mGroup && info.gclosed[mGroup] > 0)
   {
     // is it?
     // note on groups:
@@ -212,7 +211,7 @@ Instruction* Instruction::CloneList(Instruction *i)
 Single::Single(char c)
   : Instruction(), mChar(c), mUpperChar(c), mLowerChar(c)
 {
-  unsigned char diff = 'A' - 'a';
+  int diff = 'A' - 'a';
   if (CHAR_IS(c, LOWER_CHAR))
   {
     mUpperChar = (char)(c + diff);
@@ -1040,7 +1039,6 @@ bool Group::end(bool failure, const char *&cur, MatchInfo &info) const
 #endif
   
   info.gclosed[this] = true;
-  //info.gclosed[this] -= 1;
   
   info.flags = info.fstack.back();
   info.fstack.pop_back();
@@ -1170,39 +1168,39 @@ void Group::open(const char *cur, MatchInfo &info) const
     // -> conclusion: invert Rex::Reverse flag
     if (flags & Rex::Reverse)
     {
-      flags = flags & ~Rex::Reverse;
+      flags = (unsigned short)(flags & ~Rex::Reverse);
     }
     else
     {
-      flags = flags | Rex::Reverse;
+      flags = (unsigned short)(flags | Rex::Reverse);
     }
   }
   
   if (mNoCase == On)
   {
-    flags = flags | Rex::NoCase;
+    flags = (unsigned short)(flags | Rex::NoCase);
   }
   else if (mNoCase == Inherit)
   {
-    flags = flags | (info.flags & Rex::NoCase);
+    flags = (unsigned short)(flags | (info.flags & Rex::NoCase));
   }
   
   if (mMultiline == On)
   {
-    flags = flags | Rex::Multiline;
+    flags = (unsigned short)(flags | Rex::Multiline);
   }
   else if (mMultiline == Inherit)
   {
-    flags = flags | (info.flags & Rex::Multiline);
+    flags = (unsigned short)(flags | (info.flags & Rex::Multiline));
   }
   
   if (mDotNewline == On)
   {
-    flags = flags | Rex::DotMatchNewline;
+    flags = (unsigned short)(flags | Rex::DotMatchNewline);
   }
   else if (mDotNewline == Inherit)
   {
-    flags = flags | (info.flags & Rex::DotMatchNewline);
+    flags = (unsigned short)(flags | (info.flags & Rex::DotMatchNewline));
   }
   
   if (mFirst)
@@ -1241,39 +1239,39 @@ const char* Group::match(const char *cur, MatchInfo &info) const
     // -> conclusion: invert Rex::Reverse flag
     if (flags & Rex::Reverse)
     {
-      flags = flags & ~Rex::Reverse;
+      flags = (unsigned short)(flags & ~Rex::Reverse);
     }
     else
     {
-      flags = flags | Rex::Reverse;
+      flags = (unsigned short)(flags | Rex::Reverse);
     }
   }
   
   if (mNoCase == On)
   {
-    flags = flags | Rex::NoCase;
+    flags = (unsigned short)(flags | Rex::NoCase);
   }
   else if (mNoCase == Inherit)
   {
-    flags = flags | (info.flags & Rex::NoCase);
+    flags = (unsigned short)(flags | (info.flags & Rex::NoCase));
   }
   
   if (mMultiline == On)
   {
-    flags = flags | Rex::Multiline;
+    flags = (unsigned short)(flags | Rex::Multiline);
   }
   else if (mMultiline == Inherit)
   {
-    flags = flags | (info.flags & Rex::Multiline);
+    flags = (unsigned short)(flags | (info.flags & Rex::Multiline));
   }
   
   if (mDotNewline == On)
   {
-    flags = flags | Rex::DotMatchNewline;
+    flags = (unsigned short)(flags | Rex::DotMatchNewline);
   }
   else if (mDotNewline == Inherit)
   {
-    flags = flags | (info.flags & Rex::DotMatchNewline);
+    flags = (unsigned short)(flags | (info.flags & Rex::DotMatchNewline));
   }
   
 #ifdef _DEBUG
@@ -1295,7 +1293,6 @@ const char* Group::match(const char *cur, MatchInfo &info) const
     
     // not enough, if group in a repeat need a counter?
     info.gclosed[this] = false;
-    //info.gclosed[this] += 1;
     
     if (mIndex > 0)
     {
@@ -1331,7 +1328,6 @@ const char* Group::match(const char *cur, MatchInfo &info) const
     }
     
     if (info.gclosed[this] == false)
-    //if (info.gclosed[this] > 0)
     {
 #ifdef _DEBUG
       std::cout << "... group not yet closed: rv = 0x" << std::hex << (void*)rv << std::dec << std::endl;

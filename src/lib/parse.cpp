@@ -314,7 +314,7 @@ Instruction* ParseAtom(const char **ppc, ParseInfo &info)
       }
       
       int gidx = (capture ? (++(info.numGroups)) : -1);
-      unsigned short flags = (reverse ? Rex::Reverse : 0);
+      unsigned short flags = (unsigned short)(reverse ? Rex::Reverse : 0);
       
       if (*pc != ')')
       {
@@ -804,8 +804,8 @@ Repeat* ParseRepeat(const char **ppc, bool &err, ParseInfo &)
 {
   const char *pc = *ppc;
   
-  unsigned long rmin = 0;
-  unsigned long rmax = -1;
+  int rmin = 0;
+  int rmax = -1;
   bool lazy = false;
   
   switch(*pc)
@@ -827,7 +827,7 @@ Repeat* ParseRepeat(const char **ppc, bool &err, ParseInfo &)
       ++pc;
       if (ReadDecimal(&pc, r))
       {
-        rmin = r;
+        rmin = (int)r;
         if (*pc == '}')
         {
           // matched {m}
@@ -858,7 +858,7 @@ Repeat* ParseRepeat(const char **ppc, bool &err, ParseInfo &)
           return 0;
         }
         ++pc;
-        rmax = r; // matched {m,n}
+        rmax = (int)r; // matched {m,n}
       }
       else
       {
@@ -886,7 +886,7 @@ Repeat* ParseRepeat(const char **ppc, bool &err, ParseInfo &)
         }
         // matched {,m}
         ++pc;
-        rmax = r;
+        rmax = (int)r;
       }
       break;
     }

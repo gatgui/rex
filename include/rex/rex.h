@@ -119,6 +119,9 @@ class Rex {
     bool match(const std::string &s, Match &m, unsigned short flags=0, size_t offset=0, size_t len=size_t(-1)) const;
     bool match(const std::string &s, unsigned short execflags=0, size_t offset=0, size_t len=size_t(-1)) const;
     
+    std::string substitute(const Match &m, const std::string &in, bool *failed=0) const;
+    std::string substitute(const std::string &str, const std::string &in, bool *failed=0) const;
+    
     friend std::ostream& operator<<(std::ostream &os, const Rex &r);
     
   protected:

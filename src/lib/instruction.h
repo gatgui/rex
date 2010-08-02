@@ -40,7 +40,6 @@ struct MatchInfo
   std::vector<const char*> cstack;
   bool once;
   std::map<const class Group*, bool> gclosed;
-  //std::map<const class Group*, int> gclosed;
   
   MatchInfo(const char *b, const char *e, unsigned short flags, size_t ngroups);
 };
